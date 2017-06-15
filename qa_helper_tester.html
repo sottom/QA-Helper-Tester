@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <script
+            src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
+        <script
+  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+  crossorigin="anonymous"></script>
+        <style>
+/*IDS*/
+#footer-bar{
+  display: flex;
+  justify-content: space-around;
+}
+
+#grabbable {
+  height: 32px;
+  line-height: 32px;
+  text-align : center;
+  cursor     : move;
+  padding    : 0;
+  background-color: #008BD3;
+}
+#grabbable h2 {
+  display: inline;
+  font-family: Helvetica;
+  color: #fff;
+  padding: 10px;
+}
+
+#draggable {
+  z-index: 9999;
+}
+#hide-qa-helper{
+  display: block;
+  float: right;
+  height: 100%;
+  color: #008BD3;
+
+  -webkit-transition: all 1s;
+  -moz-transition: all 1s;
+  transition: all 1s;
+}
+#hide-qa-helper:hover {
+  background-color: #FFF;
+  color: #008BD3;
+}
+
+
+
+/*CLASSES*/
+.footer-bar-box{
+  position: absolute;
+}
+.footer-bar-box.slide {
+  left: 330px;
+  top: 300px;
+}
+.footer-bar-box:not(.slide) {
+  left: 23px;
+  top: 300px;
+}
+
+.footer-button {
+  border: 1px solid #008BD3;
+  padding: 10px !important; /* important to override TFS styling */
+  text-align: center;
+  cursor: pointer;
+  padding: 10px;
+  background-color: #FFF;
+  flex-grow: 1;
+}
+
+.footer-button small {
+  color: #aaa;
+  font-size: 10px;
+  display: block;
+}
+
+.footer-button p {
+  display: inline-block;
+  border-bottom: 1px solid transparent;
+  margin: 0;
+  padding: 0;
+  -webkit-transition: all .4s;
+  -moz-transition: all .4s;
+  transition: all .4s;
+}
+
+.footer-button:hover p {
+  border-bottom: 1px solid #008BD3;
+}
+
+#footer-bar {
+  clear:both;
+    font-size: 
+}
+
+            
+        </style>
+
+
+
+<div class="footer-bar-box slide" id="draggable">                                                                 
+  <div id="grabbable" class="group"><h2>UTI QA Helper</h2><button id="hide-qa-helper">X</button></div> 
+  <div id="footer-bar">                                                                                
+      <div class="footer-button" id="qa-prev-slide">                                                    
+          <p>Previous Slide</p>                                                                        
+          <small>hotkey: , (comma)</small>                                                                        
+      </div>                                                                                           
+      <div class="footer-button" id="qa-add-bug"> 
+          <div class="dropdown">
+            <p>Add Bug</p>                                                                            
+              <small>hotkey: Ctrl+Shift+s</small>
+              <select id="bug-chooser">
+                  <option></option>
+                <option id="qa-bug-create-new">Create New Bug</option>
+              </select>
+          </div>
+      </div>                                                                                           
+      <div class="footer-button" id="qa-next-slide">                                                   
+          <p>Next Slide</p>                                                                            
+          <small>hotkey: . (period)</small>
+      </div>                                                                                           
+  </div>                                                                                               
+</div>
+
+        <script>
+            
+            
+            var bugs = {};
+            $(document).ready(function(){
+                
+                                //loop through objects in localStorage and add them to QA helper "Add Bug" dropdown
+                for (var prop in localStorage) {
+                                        var bug_obj = JSON.parse(localStorage[prop]);
+                    $('#qa-bug-create-new').before('<option title="'+bug_obj.text+'" id="'+bug_obj.id+'">'+bug_obj.title+'</option>');
+                }
+                
+                                //add ability to drag QA Helper
+                $("#draggable").draggable();
+                                
+                                //grab Add Bug's <select> element, set listener for when an item is clicked
+                var $bug_chooser = $("#bug-chooser");
+                                $bug_chooser.on("change", function(e){
+                                        
+                                        //Check name of clicked bug and enter correct case statement
+                    switch($bug_chooser.val()){
+                            
+                        //create a new bug that you can use
+                        case "Create New Bug":
+                            var new_bug = bugs.create_new_bug = {};
+                            
+                                                        //set title, text, and id of new functionality
+                                                        new_bug.title = prompt("What should the title be?", "");
+                            new_bug.text = prompt("What should the text say?", "");
+                            new_bug.id = new_bug.title.toLowerCase().split(" ").join("-");
+                                                        
+                                                        //add it to the QA Helper dropdown
+                            $('#qa-bug-create-new').before('<option title="'+new_bug.text+'" id="qa-bug-'+new_bug.id+'">'+new_bug.title+'</option>');
+                                                        
+                                                        //save it in localStorage
+                            localStorage.setItem(new_bug.id, JSON.stringify(new_bug));
+                            break;
+                            
+                                                //all other bugs come through here and have their information stored in an object with TFS information
+                        default:
+                            var bug_obj_for_tfs = {};
+                                                        var $option = $("option:contains("+$bug_chooser.val()+")");
+                                                        var id_from_el = $option.attr("id");
+                                                        var correct_obj = JSON.parse(localStorage[id_from_el]);
+                                                        bug_obj_for_tfs.text = correct_obj.text;
+                                                        bug_obj_for_tfs.title = correct_obj.title;
+                                                        console.log(bug_obj_for_tfs);
+                                                        break;
+                    };
+                });   
+                            
+            });
+            
+                
+
+</script>
+            
+    </head>
+    <body>
+    </body>
+</html>
+<!--
+
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[  http://brackets.io  ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+
+-->
